@@ -1,0 +1,36 @@
+name: Release
+
+# Cut a release by pushing a tag, e.g.:
+#   git tag v0.1.0 && git push origin v0.1.0
+# This builds the universal .app on a macOS runner and attaches the zip to the
+# GitHub Release, which `install.sh` then downloads.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: xcrun swift --version && sw_vers
+
+      - name: Build universal .app
+        run: ./bundle.sh
+
+      - name: Zip the .app
+        run: |
+          cd dist
+          ditto -c -k --sequesterRsrc --keepParent "Copilot Credits.app" "Copilot-Credits.app.zip"
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/Copilot-Credits.app.zip
+          generate_release_notes: true
