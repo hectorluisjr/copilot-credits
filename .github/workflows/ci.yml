@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: xcrun swift --version
+      - name: Run tests
+        run: xcrun swift test
+      - name: Build universal .app (smoke)
+        run: ./bundle.sh

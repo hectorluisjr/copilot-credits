@@ -10,6 +10,11 @@ let package = Package(
         .executableTarget(
             name: "CopilotCreditsMenuBar",
             path: "Sources/CopilotCreditsMenuBar"
-        )
+        ),
+        .testTarget(
+            name: "CopilotCreditsMenuBarTests",
+            dependencies: ["CopilotCreditsMenuBar"],
+            path: "Tests/CopilotCreditsMenuBarTests"
+        ),
     ]
 )
