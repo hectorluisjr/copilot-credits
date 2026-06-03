@@ -36,6 +36,10 @@ final class MenuBarViewModel: ObservableObject {
     @Published private(set) var state: LoadState = .idle
     @Published private(set) var isLive: Bool = false
 
+    init() {
+        applyCachedSnapshot()
+    }
+
     /// Sendable bundle returned by the off-main scan.
     private struct ScanOutcome: Sendable {
         let result: AggregationResult
@@ -125,6 +129,7 @@ final class MenuBarViewModel: ObservableObject {
             latestInPeriod = outcome.result.latestInPeriod
             lastUpdated = Date()
             state = outcome.logCount == 0 ? .failed("No Copilot logs found") : .loaded
+            if outcome.logCount > 0 { saveSnapshot() }
         }
     }
 
@@ -197,6 +202,44 @@ final class MenuBarViewModel: ObservableObject {
                 self.refresh(settings: settings, showLoading: false)
             }
         }
+    }
+
+    // MARK: - Snapshot cache
+
+    private func applyCachedSnapshot() {
+        guard let snapshot = SnapshotStore.load() else { return }
+        usedInPeriod = snapshot.usedInPeriod
+        usedAllTime = snapshot.usedAllTime
+        recentChats = snapshot.recentChats
+        perModel = snapshot.perModel
+        eventCountInPeriod = snapshot.eventCountInPeriod
+        periodStart = snapshot.periodStart
+        resetDate = snapshot.resetDate
+        daysUntilReset = snapshot.daysUntilReset
+        earliestInPeriod = snapshot.earliestInPeriod
+        latestInPeriod = snapshot.latestInPeriod
+        scannedLogCount = snapshot.scannedLogCount
+        discoveredLogRoot = snapshot.discoveredLogRoot
+        lastUpdated = snapshot.savedAt
+        state = .loaded
+    }
+
+    private func saveSnapshot() {
+        SnapshotStore.save(UsageSnapshot(
+            usedInPeriod: usedInPeriod,
+            usedAllTime: usedAllTime,
+            perModel: perModel,
+            recentChats: recentChats,
+            eventCountInPeriod: eventCountInPeriod,
+            periodStart: periodStart,
+            resetDate: resetDate,
+            daysUntilReset: daysUntilReset,
+            earliestInPeriod: earliestInPeriod,
+            latestInPeriod: latestInPeriod,
+            scannedLogCount: scannedLogCount,
+            discoveredLogRoot: discoveredLogRoot,
+            savedAt: lastUpdated ?? Date()
+        ))
     }
 
     // MARK: - Derived values

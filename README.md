@@ -98,6 +98,9 @@ x86_64) bundle under `dist/`. Drag it into `/Applications` and add it to
 - **Warnings** — credits show as whole numbers. The progress bar turns orange at
   75% and red at 90%; the panel shows a warning banner ("Approaching limit" /
   "Almost out" / "Over your limit") and the menu bar title gains a ⚠ prefix at 90%+.
+- **Instant launch** — each successful scan is cached to
+  `~/Library/Caches/CopilotCredits/snapshot.json`, so the menu bar shows the
+  last-known total immediately on launch while a fresh scan runs.
 
 ## Verifying the numbers
 
@@ -109,6 +112,17 @@ xcrun swift build && ./.build/debug/CopilotCreditsMenuBar --print-total
 
 Compare against **github.com → Billing & licensing → AI usage** (filter to your
 user). They should match to the cent.
+
+## Tests
+
+```bash
+xcrun swift test
+```
+
+Covers the billing-period math, the usage parser (including the non-billed helper
+exclusion), aggregation/period-scoping, and both source scanners (with on-disk
+fixtures). CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs them on
+every push and PR.
 
 ## Settings
 
@@ -151,7 +165,8 @@ Sources/CopilotCreditsMenuBar/
   Models/                          CreditConstants, UsageEvent, ChatSummary
   Services/                        LogDiscoveryService, UsageParser, LogScanner,
                                    CopilotCLIScanner, AggregationStore,
-                                   BillingPeriod, FileWatcher
+                                   BillingPeriod, FileWatcher, SnapshotStore
+  Tests/CopilotCreditsMenuBarTests Billing/Parser/Aggregation/Scanner tests
   Settings/SettingsStore.swift     UserDefaults-backed, observable
   ViewModels/MenuBarViewModel.swift multi-source scan + live watching, off-main
   Views/                           MenuContentView, SettingsView
@@ -180,7 +195,8 @@ Sources/CopilotCreditsMenuBar/
 - ✅ **Phase 2** — live updates: FSEvents watcher + debounced re-scan + heartbeat.
 - ✅ **Phase 3** — named recent chats.
 - ✅ **Multi-source** — VS Code Copilot Chat + Copilot CLI, matching the admin panel.
+- ✅ **Phase 4** — startup cache + a test suite (`xcrun swift test`, run in CI).
 - **Copilot for Xcode** — investigated; it stores no usage locally, so it can't
   be priced offline (would require the GitHub billing API).
-- **Phase 4** — byte-offset tailing, log rotation/truncation handling, startup
-  cache, parser/aggregation tests.
+- **Deferred** — byte-offset tailing / rotation handling. Premature at this scale:
+  a full re-scan is sub-second, so incremental tailing isn't worth the complexity yet.
