@@ -31,7 +31,11 @@ git clone https://github.com/hectorluisjr/copilot-credits.git
 cd copilot-credits && ./install.sh
 ```
 
-**Homebrew** (optional) — see [`packaging/homebrew/copilot-credits.rb`](packaging/homebrew/copilot-credits.rb).
+**Homebrew** (optional):
+
+```bash
+brew install --cask hectorluisjr/tap/copilot-credits
+```
 
 After installing, set your **Allowance** via the ⚙ menu (your number is at
 github.com → **Billing & licensing → AI usage**). The installer removes the
